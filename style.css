@@ -1,0 +1,16 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+td {
+    border: 1px solid darkslategray;
+    padding: 5px 8px;
+}
+.data-table-container {
+    margin: 0 auto;
+}
+table {
+    border: 1px solid darkslategray;
+    margin: 30px auto;
+}
