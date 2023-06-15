@@ -30,6 +30,7 @@ class DataTable {
         $tr.appendChild($thcheck);
         $thcheck.appendChild($input);
         console.log($thcheck);
+        console.log("trail")
     }
     createTbody() {
         const $tBody = document.createElement('tbody');
