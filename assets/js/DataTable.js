@@ -2,45 +2,43 @@ class DataTable {
     constructor(columns=[], data=[]) {
         this.columns = columns;
         this.data = data;
+        this.table = document.createElement('table');
+        this.thead = document.createElement('thead');
+        this.tbody = document.createElement('tbody');
+        this.checkedArr = [];
     }
 
     createTable($dataTableContainer) {
-        const $table = document.createElement('table');
-        this.table = $table
         $dataTableContainer.appendChild(this.table)
-        // console.log(this.table)
         this.createThead()
         this.createTbody()
+        this.checkingData()
         this.deleteTd()
     }
 
     createThead() {
-        const $thead = document.createElement('thead');
-        const $tr = document.createElement('tr');
-        $thead.appendChild($tr)
-        document.querySelector('table').appendChild($thead)
+        document.querySelector('table').appendChild(this.thead)
+        const $tr = document.createElement('tr')
+        this.thead.appendChild($tr)
         this.columns.forEach((i) => {
-            const $th = document.createElement('th');
+            const $th = document.createElement('th')
             $th.innerHTML = i;
             $tr.appendChild($th);
         })
-        let $thcheck = document.createElement('th');
-        let $input = document.createElement('input');
-        $input.type = 'checkbox';
-        $tr.appendChild($thcheck);
-        $thcheck.appendChild($input);
-        console.log($thcheck);
-        console.log("trail")
+        const $thCheck = document.createElement('th')
+        const $thInput = document.createElement('input')
+        $thInput.type = 'checkbox';
+        $tr.appendChild($thCheck);
+        $thCheck.appendChild($thInput);
     }
     createTbody() {
-        const $tBody = document.createElement('tbody');
-        document.querySelector('table').appendChild($tBody);
+        document.querySelector('table').appendChild(this.tbody);
         this.data.forEach((i) => {
             const $tr = document.createElement('tr');
             for(let key in i) {
                 const $td = document.createElement('td')
                     $tr.appendChild($td)
-                    $tBody.appendChild($tr)
+                    this.tbody.appendChild($tr)
                     $td.innerHTML = i[key]
             }
             let $tdcheck = document.createElement('td');
@@ -51,14 +49,34 @@ class DataTable {
         })
     }
 
-    deleteTd() {
-        let inputArr = document.querySelectorAll('input')
-        console.log(inputArr)
+    checkingData() {
+        let inputArr = document.querySelectorAll('input');
         inputArr.forEach((item) => {
             item.addEventListener("click", (e) => {
-                let target = e.target.value
+                let target = e.target;
+                let $checkedTr = target.closest("tr");
+                if($checkedTr.closest('thead')) {
+                    const allInputsArr = this.tbody.querySelectorAll('input')
+                    allInputsArr.forEach((item) => {
+                        item.checked = target.checked;
+                    })
+                }
+                if(target.checked) {
+                    this.checkedArr.push($checkedTr)
+                    console.log('$checkedTr: ', $checkedTr)
+                    console.log('checkedArr: ', this.checkedArr.$checkedTr)
+
+                    $checkedTr.classList.add('checked')
+                } else {
+                    $checkedTr.classList.remove('checked')
+                }
             })
         })
+    }
+
+    deleteTd() {
+
+
 
     }
 

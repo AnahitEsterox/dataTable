@@ -14,3 +14,6 @@ table {
     border: 1px solid darkslategray;
     margin: 30px auto;
 }
+.checked {
+    background-color: #767f80;
+}
