@@ -10,6 +10,13 @@ td {
 .data-table-container {
     margin: 0 auto;
 }
+.pagination-wrapper {
+    margin-top: 30px;
+    text-align: center;
+}
+.pagination-label {
+    margin-right: 30px;
+}
 table {
     border: 1px solid darkslategray;
     margin: 30px auto;
