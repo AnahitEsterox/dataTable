@@ -1,17 +1,9 @@
 class DataTable {
     constructor(columns=[], data=[], {
-        perPageLimit = 5,
         rowClassName = '',
         tableClassName = '',
-        thClassName = '',
         tdClassName = '',
-        paginationBoxClassName = '',
-        pageItemClassName = '',
-        searchFieldClassName = '',
-        labelClassName = '',
-        checkAllClassName = '',
-        pageContainerClassName = '',
-        pageActiveClassName = '',
+
     })
     {
         this.columns = columns;
@@ -24,17 +16,24 @@ class DataTable {
         this.rowClassName = `data__row ${rowClassName}`;
         this.tableClassName = `datatable ${tableClassName}`;
         this.tdClassName = `td__item ${tdClassName}`;
+        this.pageItemClassName = '';
+
     }
 
     createTable($dataTableContainer) {
-        this.handlePagination()
+
+
 
         $dataTableContainer.appendChild(this.table)
         this.table.setAttribute('class', this.tableClassName);
         this.createThead()
+        this.handlePagination()
+
         this.createTbody()
         // this.checkingData()
         this.handleDelete()
+        // this.displayList2(0, 10);
+
 
     }
 
@@ -63,30 +62,29 @@ class DataTable {
     }
     createTbody() {
 
-        document.querySelector('table').appendChild(this.tbody);
-        this.data.forEach((i) => {
-            const $tr = document.createElement('tr');
-            $tr.setAttribute('class', this.rowClassName);
-
-            for(let key in i) {
-                const $td = document.createElement('td')
-                $tr.appendChild($td)
-                this.tbody.appendChild($tr)
-                $td.innerHTML = i[key]
-            }
-            let $tdcheck = document.createElement('td');
-            let $input = document.createElement('input');
-            $input.type = 'checkbox';
-            $tr.appendChild($tdcheck);
-            $tdcheck.appendChild($input);
-            const $tdDelete = document.createElement('td');
-            const $deleteIcon = document.createElement('i');
-            $deleteIcon.classList.add('fa', 'fa-trash-o');
-            $tdDelete.setAttribute('class', this.tdClassName);
-            $deleteIcon.dataset.currentRowId = i.id;
-            $tdDelete.appendChild($deleteIcon);
-            $tr.appendChild($tdDelete);
-        })
+        // this.data.forEach((i) => {
+        //     const $tr = document.createElement('tr');
+        //     $tr.setAttribute('class', this.rowClassName);
+        //
+        //     for(let key in i) {
+        //         const $td = document.createElement('td')
+        //         $tr.appendChild($td)
+        //         this.tbody.appendChild($tr)
+        //         $td.innerHTML = i[key]
+        //     }
+        //     let $tdcheck = document.createElement('td');
+        //     let $input = document.createElement('input');
+        //     $input.type = 'checkbox';
+        //     $tr.appendChild($tdcheck);
+        //     $tdcheck.appendChild($input);
+        //     const $tdDelete = document.createElement('td');
+        //     const $deleteIcon = document.createElement('i');
+        //     $deleteIcon.classList.add('fa', 'fa-trash-o');
+        //     $tdDelete.setAttribute('class', this.tdClassName);
+        //     $deleteIcon.dataset.currentRowId = i.id;
+        //     $tdDelete.appendChild($deleteIcon);
+        //     $tr.appendChild($tdDelete);
+        // })
     }
 
     // checkingData() {
@@ -159,50 +157,127 @@ class DataTable {
         $label.innerHTML = 'Per page count';
         $pageWrapper.appendChild($label);
         $pageWrapper.appendChild(this.perPageLimit);
+        this.perPageLimit.value = ' ';
+
         $pageWrapper.setAttribute('class', 'pagination-wrapper');
         this.perPageLimit.type = 'text';
         document.querySelector('.data-table-container ').appendChild($pageWrapper)
-
+        this.displayList2(0, 10);
         this.perPageLimit.addEventListener('change', (e) => {
-
             this.displayList(this.perPageLimit.value)
             this.perPageLimit.value = " ";
         })
+
     }
 
     pageInputValidation() {
-        const itemsCount = this.data.length;
+        // const itemsCount = this.data.length;
         const countMassage = document.createElement('span');
-        countMassage.innerHTML = `max: ${itemsCount}`;
+        // countMassage.innerHTML = `max: ${itemsCount}`;
         document.querySelector('.pagination-wrapper').appendChild(countMassage);
         const enteredValue = this.perPageLimit.value;
         const numbersOnly = /^\d+$/;
-        if(!numbersOnly.test(enteredValue)) {
-            alert('enter a valid number')
-        }
+        // if(!numbersOnly.test(enteredValue)) {
+        //     alert('enter a valid number')
+        // }
+
+    }
+    displayList2(startCount, endCount) {
+        const eachPageItems = this.data.slice(startCount, endCount);
+        eachPageItems.forEach((item) => {
+            const $tr = document.createElement('tr');
+            this.tbody.appendChild($tr)
+            $tr.setAttribute('class', this.rowClassName);
+            for(let key in item) {
+                const $td = document.createElement('td')
+                $td.innerHTML = item[key]
+                $tr.appendChild($td)
+                this.tbody.appendChild($tr)
+            }
+            let $tdcheck = document.createElement('td');
+            let $input = document.createElement('input');
+            $input.type = 'checkbox';
+            $tr.appendChild($tdcheck);
+            $tdcheck.appendChild($input);
+            const $tdDelete = document.createElement('td');
+            const $deleteIcon = document.createElement('i');
+            $deleteIcon.classList.add('fa', 'fa-trash-o');
+            $tdDelete.setAttribute('class', this.tdClassName);
+            $deleteIcon.dataset.currentRowId = item.id;
+            $tdDelete.appendChild($deleteIcon);
+            $tr.appendChild($tdDelete);
+        })
     }
 
-    displayList(count) {
+    displayList() {
+
         this.pageInputValidation()
         let pages;
 
         if(this.data.length == this.perPageLimit.value) {
             pages = this.data.length / this.perPageLimit.value;
-            console.log('its ok: ', pages)
-
         } else if(this.data.length / this.perPageLimit.value !== 0 && this.perPageLimit.value < this.data.length) {
             pages = Math.floor(this.data.length / this.perPageLimit.value) + 1;
-            console.log('more',pages)
         } else if(this.perPageLimit.value > this.data.length) {
             alert('ups')
         }
-        for(let i=0; i < pages; i++) {
-            console.log(i)
-        }
-        // pages.forEach((perPage) => {
-        //     console.log(perPage)
-        // })
+        const $paginationBox = document.createElement('div');
+        $paginationBox.setAttribute('class', 'pagination-box')
+        document.querySelector('.data-table-container').appendChild($paginationBox);
+        document.querySelector('table').appendChild(this.tbody);
 
+        for(let i=1; i <= pages; i++) {
+            const $pageButton = document.createElement('button');
+            this.pageItemClassName = 'page-btn';
+            $pageButton.innerHTML = i ;
+            $pageButton.setAttribute('class', this.pageItemClassName);
+            $paginationBox.appendChild($pageButton);
+            console.log(i)
+            if (i == 1) {
+                $pageButton.classList.add('page__item--active');
+                this.displayList2(0, 10);
+            }
+            document.querySelectorAll('.page-btn').forEach((eachItem) => {
+                eachItem.addEventListener('click', function() {
+                    console.log('here');
+
+                    if(document.querySelector('.page__item--active')){
+                        document.querySelector('.page__item--active').classList.remove('page__item--active');
+                    }
+                    this.classList.add('page-active');
+                    let startIndex =  this.perPageLimit.value * parseInt(this.innerHTML);
+                    let endIndex= startIndex + this.perPageLimit.value;
+                    // document.querySelector('tbody').replaceChildren();
+                    DataTable.displayList2(startIndex, endIndex);
+                    console.log('startIndex: ', startIndex);
+                    console.log('endIndex: ', endIndex);
+                })
+            })
+            // const pageItems = this.data.slice(startIndex, startIndex + this.perPageLimit.value);
+            // pageItems.forEach((item) => {
+            //     const $tr = document.createElement('tr');
+            //     this.tbody.appendChild($tr)
+            //     $tr.setAttribute('class', this.rowClassName);
+            //     for(let key in item) {
+            //         const $td = document.createElement('td')
+            //         $td.innerHTML = item[key]
+            //         $tr.appendChild($td)
+            //         this.tbody.appendChild($tr)
+            //     }
+            //     let $tdcheck = document.createElement('td');
+            //     let $input = document.createElement('input');
+            //     $input.type = 'checkbox';
+            //     $tr.appendChild($tdcheck);
+            //     $tdcheck.appendChild($input);
+            //     const $tdDelete = document.createElement('td');
+            //     const $deleteIcon = document.createElement('i');
+            //     $deleteIcon.classList.add('fa', 'fa-trash-o');
+            //     $tdDelete.setAttribute('class', this.tdClassName);
+            //     $deleteIcon.dataset.currentRowId = i.id;
+            //     $tdDelete.appendChild($deleteIcon);
+            //     $tr.appendChild($tdDelete);
+            // })
+        }
     }
 }
 
