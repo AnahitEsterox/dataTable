@@ -1,4 +1,4 @@
-import DataTable from "./DataTable.js";
+ import DataTable from "./DataTable.js";
 
 const data = [
     {
@@ -183,16 +183,12 @@ const data = [
     },
 ];
 
-const options = {
-
-};
-
 const columns = ['id', 'name', 'age', 'hobby'];
 
-Element.prototype.DataTable = function(columns, data, options) {
-    const dataTable = new DataTable(columns, data, options);
+Element.prototype.DataTable = function(columns, data) {
+    const dataTable = new DataTable(columns, data);
     dataTable.createTable(this);
 }
 
 const $dataTableContainer = document.querySelector('.data-table-container');
-$dataTableContainer.DataTable(columns, data, options);
+$dataTableContainer.DataTable(columns, data);

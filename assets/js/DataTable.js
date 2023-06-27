@@ -1,47 +1,27 @@
 class DataTable {
-    constructor(columns=[], data=[], {
-        rowClassName = '',
-        tableClassName = '',
-        tdClassName = '',
-
-    })
+    constructor(columns= [], data= [])
     {
         this.columns = columns;
         this.data = data;
         this.table = document.createElement('table');
         this.thead = document.createElement('thead');
         this.tbody = document.createElement('tbody');
-        this.checkedItems = [];
-        this.perPageLimit = document.createElement('input');
-        this.rowClassName = `data__row ${rowClassName}`;
-        this.tableClassName = `datatable ${tableClassName}`;
-        this.tdClassName = `td__item ${tdClassName}`;
-        this.pageItemClassName = '';
-
+        this.perPageLimit = 10;
+        this.start = '';
+        this.end = '';
     }
 
     createTable($dataTableContainer) {
-
-
-
         $dataTableContainer.appendChild(this.table)
-        this.table.setAttribute('class', this.tableClassName);
-        this.createThead()
-        this.handlePagination()
-
-        this.createTbody()
-        // this.checkingData()
-        this.handleDelete()
-        // this.displayList2(0, 10);
-
-
+        this.createThead();
+        this.createTbody();
+        this.renderData();
+        this.pagination();
+        // this.displayList()
     }
-
     createThead() {
         document.querySelector('table').appendChild(this.thead)
         const $tr = document.createElement('tr')
-        $tr.setAttribute('class', this.rowClassName);
-
         this.thead.appendChild($tr)
         this.columns.forEach((i) => {
             const $th = document.createElement('th')
@@ -51,6 +31,7 @@ class DataTable {
         const $thCheck = document.createElement('th');
         const $thInput = document.createElement('input');
         $thInput.type = 'checkbox';
+        $thInput.setAttribute('class', 'th-input')
         $tr.appendChild($thCheck);
         $thCheck.appendChild($thInput);
         const $thDelete = document.createElement('th');
@@ -58,226 +39,176 @@ class DataTable {
         $deleteIcon.classList.add('fa', 'fa-trash-o');
         $thDelete.appendChild($deleteIcon);
         $tr.appendChild($thDelete);
+        $thDelete.classList.add('th-delete');
 
     }
     createTbody() {
-
-        // this.data.forEach((i) => {
-        //     const $tr = document.createElement('tr');
-        //     $tr.setAttribute('class', this.rowClassName);
-        //
-        //     for(let key in i) {
-        //         const $td = document.createElement('td')
-        //         $tr.appendChild($td)
-        //         this.tbody.appendChild($tr)
-        //         $td.innerHTML = i[key]
-        //     }
-        //     let $tdcheck = document.createElement('td');
-        //     let $input = document.createElement('input');
-        //     $input.type = 'checkbox';
-        //     $tr.appendChild($tdcheck);
-        //     $tdcheck.appendChild($input);
-        //     const $tdDelete = document.createElement('td');
-        //     const $deleteIcon = document.createElement('i');
-        //     $deleteIcon.classList.add('fa', 'fa-trash-o');
-        //     $tdDelete.setAttribute('class', this.tdClassName);
-        //     $deleteIcon.dataset.currentRowId = i.id;
-        //     $tdDelete.appendChild($deleteIcon);
-        //     $tr.appendChild($tdDelete);
-        // })
+        document.querySelector('table').appendChild(this.tbody)
     }
 
-    // checkingData() {
-    //     let inputArr = document.querySelectorAll('input');
-    //     inputArr.forEach((item) => {
-    //         item.addEventListener("click", (e) => {
-    //             let target = e.target;
-    //             let $checkedTr = target.closest("tr");
-    //             if($checkedTr.closest('thead')) {
-    //                 this.checkedItems = [];
-    //                 const allInputsArr = this.tbody.querySelectorAll('input');
-    //                 allInputsArr.forEach((item) => {
-    //                     item.checked = target.checked;
-    //                     if (item.checked) {
-    //                         this.checkedItems.push($checkedTr);
-    //                     } else {
-    //                         const index = this.checkedItems.indexOf($checkedTr);
-    //                         if (index !== -1) {
-    //                             this.checkedItems.splice(index, 1);
-    //                         }
-    //                     }
-    //                 });
-    //             } else if(target.checked) {
-    //                 this.checkedItems.push($checkedTr);
-    //             } else if(!target.checked && $checkedTr.closest("tbody")){
-    //                 const index = this.checkedItems.indexOf($checkedTr);
-    //                 if (index !== -1) {
-    //                     this.checkedItems.splice(index, 1);
-    //                 }
-    //             }
-    //         })
-    //     })
-    // }
-    handleDelete() {
-        const btnDeleteArr = document.querySelectorAll('.fa-trash-o')
-        btnDeleteArr.forEach((i) => {
-            i.addEventListener('click', (e) => {
-                const clickedTr = e.target.closest('tr')
-                const deletedTr = this.checkedItems.find((item) => item ===  clickedTr);
-                const findToDelete = this.data.findIndex((obj) => obj.id == i.dataset.currentRowId)
+    renderData() {
+        this.displayList(0, this.perPageLimit)
+    }
 
-                if (findToDelete !== -1 && deletedTr) {
-                    this.data.splice(findToDelete, 1)
-                    clickedTr.remove();
-                    this.createTbody();
-                } else if(clickedTr.closest('thead')) {
-                    const allInputsArr = this.tbody.querySelectorAll('input');
-                    allInputsArr.forEach((item) => {
-                        if(item.checked) {
-                            const deleteTrs =  item.closest('tr')
-                            deleteTrs.remove();
-                            this.createTbody();
-                        }
-                    });
+    pagination() {
+        const $pageWrapper = document.createElement('div')
+        $pageWrapper.setAttribute('class', 'page-wrapper');
+        const $itemsCountInput = document.createElement('input');
+        const $pageBox = document.createElement('div');
+        document.querySelector('.data-table-container').appendChild($pageBox);
+        $pageBox.classList.add('page-box');
+
+        $itemsCountInput.type = 'text';
+        $pageWrapper.appendChild($itemsCountInput);
+        document.querySelector('.data-table-container').appendChild($pageWrapper);
+        $itemsCountInput.addEventListener('change', (e) => {
+            this.perPageLimit = parseInt($itemsCountInput.value);
+            document.querySelector('tbody').replaceChildren();
+            let itemsCount = parseInt(e.target.value) + 1;
+            const pagesCount = Math.ceil(this.data.length / itemsCount);
+            for(let page = 1; page <= pagesCount; page++) {
+                const $pagebtn = document.createElement('button');
+                $pagebtn.classList.add('page-btn')
+                $pagebtn.innerHTML = page;
+                $pageBox.appendChild($pagebtn);
+                if(page === 1) {
+                    $pagebtn.classList.add('active-page')
+                    this.start = 0;
+                    this.end = this.perPageLimit;
+                    document.querySelector('tbody').replaceChildren();
+
+                    this.displayList(this.start, this.end);
+                    this.handleDelete();
+                }
+            }
+
+            document.querySelectorAll('.page-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    if(document.querySelector('.active-page')){
+                        document.querySelector('.active-page').classList.remove('active-page')
+                    }
+                    btn.classList.add('active-page');
+                    this.start = this.perPageLimit * parseInt(btn.innerHTML - 1);
+                    this.end = this.perPageLimit + this.start;
+                    document.querySelector('tbody').replaceChildren();
+                    this.displayList(this.start, this.end);
+                    this.handleDelete();
+                })
+            })
+
+            for(let page = 1; page <= pagesCount; page++) {
+                const startIndex = (page - 1) * itemsCount;
+                this.start = startIndex;
+                const endIndex = startIndex + itemsCount - 1;
+                this.end = endIndex;
+                this.displayList(startIndex, endIndex)
+                this.handleDelete();
+                this.perPageLimit = parseInt($itemsCountInput.value);
+            }
+            e.target.value = ' ';
+        })
+        this.handleDelete();
+    }
+
+    // pagination() {
+    //     const $pageWrapper = document.createElement('div')
+    //     $pageWrapper.setAttribute('class', 'page-wrapper');
+    //     const $itemsCountInput = document.createElement('input');
+    //     const $pageBox = document.createElement('div');
+    //     document.querySelector('.data-table-container').appendChild($pageBox);
+    //     $pageBox.classList.add('page-box');
+    //
+    //     $itemsCountInput.type = 'text';
+    //     $pageWrapper.appendChild($itemsCountInput);
+    //     document.querySelector('.data-table-container').appendChild($pageWrapper);
+    //     $itemsCountInput.addEventListener('change', (e) => {
+    //         const trs = document.querySelectorAll('.tbody-tr')
+    //         trs.forEach((tr) =>  {
+    //             tr.remove();
+    //         })
+    //         let itemsCount = parseInt(e.target.value) + 1;
+    //         const pagesCount = Math.ceil(this.data.length / itemsCount);
+    //         for(let page = 1; page <= pagesCount; page++) {
+    //             const $page = document.createElement('div');
+    //             $pageBox.appendChild($page);
+    //             $page.innerHTML = page;
+    //         }
+    //         for(let page = 1; page <= pagesCount; page++) {
+    //             const startIndex = (page - 1) * itemsCount;
+    //             this.start = startIndex;
+    //             const endIndex = startIndex + itemsCount - 1;
+    //             this.end = endIndex;
+    //             this.displayList(startIndex, endIndex)
+    //             this.handleDelete();
+    //             this.perPageLimit.innerHTML = " ";
+    //         }
+    //
+    //         e.target.value = ' ';
+    //     })
+    //     this.handleDelete();
+    // }
+
+    handleDelete() {
+        const trs = document.querySelectorAll('.tbody-tr');
+        document.querySelector('.th-input').addEventListener('click', (e) => {
+            trs.forEach((tr) => {
+                let input = tr.querySelector('.td-input');
+                if(document.querySelector('.th-input').checked){
+                    input.checked = true;
+                    document.querySelector('.th-delete').addEventListener('click', (e) => {
+                        this.tbody.innerHTML = null;
+                    })
                 } else {
-                    this.data.splice(findToDelete, this.checkedItems.length)
-                    clickedTr.remove();
-                    this.createTbody();
+                    input.checked = false;
+                }
+            })
+        })
+        document.querySelectorAll('.td-input').forEach((input) => {
+            input.addEventListener('click', (e) => {
+                if(input.checked) {
+                    const checkedTr = input.closest('tr')
+                    checkedTr.querySelector('.td-delete').addEventListener('click', (e) => {
+                        checkedTr.remove()
+                    })
+                }
+            })
+        })
+        document.querySelector('.th-delete').addEventListener('click', (e) => {
+            trs.forEach((tr) => {
+                if(tr.querySelector('.td-input').checked) {
+                    tr.remove()
                 }
             })
         })
     }
-
-    handlePagination() {
-        const $pageWrapper = document.createElement('div');
-        const $label = document.createElement('label');
-        $label.classList.add('pagination-label');
-        $pageWrapper.classList.add('pagination-wrapper');
-        $label.classList.add('pagination-label')
-        $label.innerHTML = 'Per page count';
-        $pageWrapper.appendChild($label);
-        $pageWrapper.appendChild(this.perPageLimit);
-        this.perPageLimit.value = ' ';
-
-        $pageWrapper.setAttribute('class', 'pagination-wrapper');
-        this.perPageLimit.type = 'text';
-        document.querySelector('.data-table-container ').appendChild($pageWrapper)
-        this.displayList2(0, 10);
-        this.perPageLimit.addEventListener('change', (e) => {
-            this.displayList(this.perPageLimit.value)
-            this.perPageLimit.value = " ";
-        })
-
-    }
-
-    pageInputValidation() {
-        // const itemsCount = this.data.length;
-        const countMassage = document.createElement('span');
-        // countMassage.innerHTML = `max: ${itemsCount}`;
-        document.querySelector('.pagination-wrapper').appendChild(countMassage);
-        const enteredValue = this.perPageLimit.value;
-        const numbersOnly = /^\d+$/;
-        // if(!numbersOnly.test(enteredValue)) {
-        //     alert('enter a valid number')
-        // }
-
-    }
-    displayList2(startCount, endCount) {
+    displayList(startCount, endCount) {
         const eachPageItems = this.data.slice(startCount, endCount);
         eachPageItems.forEach((item) => {
             const $tr = document.createElement('tr');
-            this.tbody.appendChild($tr)
-            $tr.setAttribute('class', this.rowClassName);
+            $tr.setAttribute('class', 'tbody-tr')
             for(let key in item) {
                 const $td = document.createElement('td')
-                $td.innerHTML = item[key]
                 $tr.appendChild($td)
                 this.tbody.appendChild($tr)
+                $td.innerHTML = item[key]
             }
             let $tdcheck = document.createElement('td');
             let $input = document.createElement('input');
+            $input.setAttribute('class','td-input')
             $input.type = 'checkbox';
             $tr.appendChild($tdcheck);
             $tdcheck.appendChild($input);
+            if($input.checked) {
+                $input.closest($tr).setAttribute('class', 'checked');
+            }
             const $tdDelete = document.createElement('td');
             const $deleteIcon = document.createElement('i');
             $deleteIcon.classList.add('fa', 'fa-trash-o');
-            $tdDelete.setAttribute('class', this.tdClassName);
+            $tdDelete.setAttribute('class', 'td-delete');
             $deleteIcon.dataset.currentRowId = item.id;
             $tdDelete.appendChild($deleteIcon);
             $tr.appendChild($tdDelete);
         })
-    }
-
-    displayList() {
-
-        this.pageInputValidation()
-        let pages;
-
-        if(this.data.length == this.perPageLimit.value) {
-            pages = this.data.length / this.perPageLimit.value;
-        } else if(this.data.length / this.perPageLimit.value !== 0 && this.perPageLimit.value < this.data.length) {
-            pages = Math.floor(this.data.length / this.perPageLimit.value) + 1;
-        } else if(this.perPageLimit.value > this.data.length) {
-            alert('ups')
-        }
-        const $paginationBox = document.createElement('div');
-        $paginationBox.setAttribute('class', 'pagination-box')
-        document.querySelector('.data-table-container').appendChild($paginationBox);
-        document.querySelector('table').appendChild(this.tbody);
-
-        for(let i=1; i <= pages; i++) {
-            const $pageButton = document.createElement('button');
-            this.pageItemClassName = 'page-btn';
-            $pageButton.innerHTML = i ;
-            $pageButton.setAttribute('class', this.pageItemClassName);
-            $paginationBox.appendChild($pageButton);
-            console.log(i)
-            if (i == 1) {
-                $pageButton.classList.add('page__item--active');
-                this.displayList2(0, 10);
-            }
-            document.querySelectorAll('.page-btn').forEach((eachItem) => {
-                eachItem.addEventListener('click', function() {
-                    console.log('here');
-
-                    if(document.querySelector('.page__item--active')){
-                        document.querySelector('.page__item--active').classList.remove('page__item--active');
-                    }
-                    this.classList.add('page-active');
-                    let startIndex =  this.perPageLimit.value * parseInt(this.innerHTML);
-                    let endIndex= startIndex + this.perPageLimit.value;
-                    // document.querySelector('tbody').replaceChildren();
-                    DataTable.displayList2(startIndex, endIndex);
-                    console.log('startIndex: ', startIndex);
-                    console.log('endIndex: ', endIndex);
-                })
-            })
-            // const pageItems = this.data.slice(startIndex, startIndex + this.perPageLimit.value);
-            // pageItems.forEach((item) => {
-            //     const $tr = document.createElement('tr');
-            //     this.tbody.appendChild($tr)
-            //     $tr.setAttribute('class', this.rowClassName);
-            //     for(let key in item) {
-            //         const $td = document.createElement('td')
-            //         $td.innerHTML = item[key]
-            //         $tr.appendChild($td)
-            //         this.tbody.appendChild($tr)
-            //     }
-            //     let $tdcheck = document.createElement('td');
-            //     let $input = document.createElement('input');
-            //     $input.type = 'checkbox';
-            //     $tr.appendChild($tdcheck);
-            //     $tdcheck.appendChild($input);
-            //     const $tdDelete = document.createElement('td');
-            //     const $deleteIcon = document.createElement('i');
-            //     $deleteIcon.classList.add('fa', 'fa-trash-o');
-            //     $tdDelete.setAttribute('class', this.tdClassName);
-            //     $deleteIcon.dataset.currentRowId = i.id;
-            //     $tdDelete.appendChild($deleteIcon);
-            //     $tr.appendChild($tdDelete);
-            // })
-        }
     }
 }
 
